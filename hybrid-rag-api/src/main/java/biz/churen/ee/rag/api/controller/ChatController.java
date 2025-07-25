@@ -19,6 +19,6 @@ public class ChatController {
 
     @RequestMapping(value = "/qwen", method = {RequestMethod.GET})
     public Message<String> chatV1(@RequestParam(value = "userMessage") String userMessage) {
-        return Message.ok(qwenChatService.chat(LLM.QWEN_PLUS.getModel(), userMessage));
+        return Message.ok(qwenChatService.chat(LLM.QWEN_PLUS, userMessage));
     }
 }

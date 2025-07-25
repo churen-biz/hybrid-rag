@@ -10,10 +10,8 @@ import lombok.Data;
 public class QwenClientEnv {
 
     @Value("${env.Qwen.apiKey}")
-    // @Value("${ENV_QWEN_API_KEY}")
     private String apiKey;
 
     @Value("${env.Qwen.baseUrl}")
-    // @Value("${ENV_QWEN_BASE_URL}")
     private String baseUrl;
 }
