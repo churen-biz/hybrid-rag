@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiFunction;
 
 import org.springframework.stereotype.Service;
 
@@ -60,5 +61,38 @@ public class HelperService {
             log.error(th.getMessage(), th);
         }
         return Pair.of(Boolean.FALSE, 0f);
+    }
+
+    /**
+     * @return 使用 logProbs 参数
+     */
+    @SuppressWarnings("DuplicatedCode")
+    public int logProb(OpenAIClient client, LLM llm,
+            String systemMessage, String userMessage,
+            BiFunction<String, Double, Integer> function
+    ) {
+        try {
+            ChatCompletionCreateParams.Builder builder = ChatCompletionCreateParams.builder();
+            builder.model(llm.getModel());
+            builder.addSystemMessage(systemMessage);
+            builder.addUserMessage(userMessage);
+            builder.logprobs(true);
+            builder.topLogprobs(3);
+            builder.temperature(0);
+
+            ChatCompletion chatCompletion = client.chat().completions().create(builder.build());
+            List<ChatCompletionTokenLogprob> logProbs = chatCompletion.choices().get(0)
+                    .logprobs().flatMap(Logprobs::content).orElse(new ArrayList<>());
+            double logProbVal;
+            for (ChatCompletionTokenLogprob logProb : logProbs) {
+                String token = logProb.token();
+                logProbVal = logProb.logprob();
+                log.info("logProb token: {}, logProb: {}", token, logProbVal);
+                return function.apply(token, logProbVal);
+            }
+        } catch (Throwable th) {
+            log.error(th.getMessage(), th);
+        }
+        return 0;
     }
 }
